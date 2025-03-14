@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontrol Arduino via Bluetooth</title>
+</head>
+<body>
+    <h1>Kontrol LED dengan Bluetooth</h1>
+    <button onclick="connectBluetooth()">Hubungkan Bluetooth</button>
+    <button onclick="sendData('1')">Nyalakan LED</button>
+    <button onclick="sendData('0')">Matikan LED</button>
+
+    <script>
+        let bluetoothDevice;
+        let bluetoothCharacteristic;
+
+        async function connectBluetooth() {
+            try {
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+                });
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                bluetoothCharacteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+                alert("Terhubung ke Bluetooth!");
+            } catch (error) {
+                alert("Gagal menghubungkan: " + error);
+            }
+        }
+
+        function sendData(data) {
+            if (bluetoothCharacteristic) {
+                let buffer = new TextEncoder().encode(data);
+                bluetoothCharacteristic.writeValue(buffer);
+            }
+        }
+    </script>
+</body>
+</html>
